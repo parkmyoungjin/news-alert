@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 뉴스 요약</title>
+    <style>
+        :root {
+            --primary-color: #3b6978;
+            --secondary-color: #204051;
+            --accent-color: #4d9de0;
+            --light-color: #e7e7de;
+            --dark-color: #2b2b2b;
+            --success-color: #4caf50;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+            background-color: #f5f5f7;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .topic-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .date-info {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .news-section {
+            margin-bottom: 40px;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        
+        .news-section.hidden {
+            display: none;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-title span {
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title .icon {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+        
+        .news-list {
+            list-style: none;
+        }
+        
+        .news-item {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .news-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .news-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+        
+        .news-title a {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .news-title a:hover {
+            color: var(--accent-color);
+        }
+        
+        .news-summary {
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 10px;
+            line-height: 1.5;
+            border-left: 3px solid var(--accent-color);
+            padding-left: 12px;
+            background-color: rgba(77, 157, 224, 0.05);
+            padding: 12px;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .news-link {
+            display: inline-block;
+            color: var(--accent-color);
+            font-size: 0.85rem;
+            text-decoration: none;
+            margin-top: 8px;
+            padding: 5px 10px;
+            background-color: rgba(77, 157, 224, 0.1);
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .news-link:hover {
+            background-color: rgba(77, 157, 224, 0.2);
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+        
+        .loading::after {
+            content: "";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            margin-left: 10px;
+            animation: spin 1s infinite linear;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 15px;
+            font-size: 0.8rem;
+            color: #777;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            header {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .news-item {
+                padding: 15px;
+            }
+            
+            .topic-badge {
+                top: -5px;
+                right: -5px;
+                font-size: 0.8rem;
+                padding: 3px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>오늘의 주요 뉴스 요약</h1>
+            <p class="date-info" id="current-date">날짜 로딩 중...</p>
+            <div class="topic-badge" id="topic-badge">전체 뉴스</div>
+        </header>
+        
+        <section class="news-section" id="stock-news-section">
+            <h2 class="section-title">
+                <span><span class="icon">📈</span> 미국 주식시장 뉴스</span>
+                <span id="stock-count" class="count"></span>
+            </h2>
+            <ul class="news-list" id="stock-news-list">
+                <li class="news-item loading">뉴스를 불러오는 중입니다...</li>
+            </ul>
+        </section>
+        
+        <section class="news-section" id="medical-news-section">
+            <h2 class="section-title">
+                <span><span class="icon">🏥</span> 한국 의료계 뉴스</span>
+                <span id="medical-count" class="count"></span>
+            </h2>
+            <ul class="news-list" id="medical-news-list">
+                <li class="news-item loading">뉴스를 불러오는 중입니다...</li>
+            </ul>
+        </section>
+        
+        <footer>
+            <p>© 2025 뉴스 알림 서비스 | 매시간 업데이트</p>
+        </footer>
+    </div>
+
+    <script>
+        // 현재 날짜 표시
+        function updateDate() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false
+            };
+            const formattedDate = new Intl.DateTimeFormat('ko-KR', options).format(now);
+            document.getElementById('current-date').textContent = formattedDate + ' 기준';
+        }
+        
+        // 뉴스 데이터 로드
+        function loadNewsData() {
+            // URL 파라미터에서 데이터와 토픽 가져오기
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            const topicParam = urlParams.get('topic');
+            
+            // 토픽 배지 표시
+            if (topicParam) {
+                document.getElementById('topic-badge').textContent = topicParam;
+                
+                // 토픽에 따라 관련 섹션만 표시
+                if (topicParam.includes('미국 주식시장')) {
+                    document.getElementById('medical-news-section').classList.add('hidden');
+                } else if (topicParam.includes('한국 의료계')) {
+                    document.getElementById('stock-news-section').classList.add('hidden');
+                }
+            }
+            
+            if (dataParam) {
+                try {
+                    // URL 파라미터로 데이터가 전달된 경우
+                    const decodedData = decodeURIComponent(dataParam);
+                    const newsData = JSON.parse(decodedData);
+                    
+                    // 뉴스가 토픽이 없는 형태로 전달된 경우
+                    if (Array.isArray(newsData)) {
+                        if (topicParam && topicParam.includes('미국 주식시장')) {
+                            renderNewsList('stock-news-list', newsData, 'stock-count');
+                        } else if (topicParam && topicParam.includes('한국 의료계')) {
+                            renderNewsList('medical-news-list', newsData, 'medical-count');
+                        } else {
+                            // 토픽이 없으면 주식 뉴스로 처리
+                            renderNewsList('stock-news-list', newsData, 'stock-count');
+                        }
+                        return;
+                    }
+                    
+                    // 주식 뉴스 데이터 처리
+                    if (newsData.stock && newsData.stock.length > 0) {
+                        renderNewsList('stock-news-list', newsData.stock, 'stock-count');
+                    } else {
+                        document.getElementById('stock-news-section').classList.add('hidden');
+                    }
+                    
+                    // 의료 뉴스 데이터 처리
+                    if (newsData.medical && newsData.medical.length > 0) {
+                        renderNewsList('medical-news-list', newsData.medical, 'medical-count');
+                    } else {
+                        document.getElementById('medical-news-section').classList.add('hidden');
+                    }
+                    
+                    return;
+                } catch (error) {
+                    console.error('데이터 파싱 오류:', error);
+                }
+            }
+            
+            // 기본 데이터 (파라미터가 없거나 파싱 오류 시)
+            const stockNews = [
+                {
+                    title: "미국 다우지수 상승세 유지, 기술주 강세",
+                    link: "https://finance.naver.com",
+                    summary: "미국 증시에서 다우지수가 상승세를 유지하고 있으며, 특히 기술주가 강세를 보이고 있습니다. 투자자들은 실적 호조와 경제 지표 개선에 주목하고 있습니다."
+                },
+                {
+                    title: "연준, 금리 동결 결정... 하반기 금리 인하 전망",
+                    link: "https://finance.naver.com",
+                    summary: "미 연방준비제도(Fed)가 기준금리를 현행 수준에서 동결하기로 결정했습니다. 연준은 인플레이션이 목표치에 근접함에 따라 하반기에 금리 인하를 검토할 것으로 전망됩니다."
+                },
+                {
+                    title: "애플·마이크로소프트 실적 발표, 시장 예상치 상회",
+                    link: "https://finance.naver.com",
+                    summary: "애플과 마이크로소프트가 분기 실적을 발표했으며, 두 기업 모두 시장 예상치를 상회했습니다. 클라우드 서비스와 인공지능 사업 확대가 성장을 이끌었습니다."
+                }
+            ];
+            
+            renderNewsList('stock-news-list', stockNews, 'stock-count');
+            
+            const medicalNews = [
+                {
+                    title: "보건복지부, 의료 인력 확충 계획 발표",
+                    link: "https://news.naver.com",
+                    summary: "보건복지부가 의료 인력 확충을 위한 중장기 계획을 발표했습니다. 지방 의료기관의 인력난 해소와 전문의 수급 개선이 주요 과제로 설정되었습니다."
+                },
+                {
+                    title: "코로나19 확진자 감소세, 방역 체계 조정",
+                    link: "https://news.naver.com",
+                    summary: "코로나19 확진자 수가 지속적인 감소세를 보이는 가운데, 정부가 방역 체계를 조정했습니다. 일상 회복에 중점을 둔 새로운 방역 지침이 마련되었습니다."
+                },
+                {
+                    title: "신약 개발 투자 늘린다...제약사 연구개발 확대",
+                    link: "https://news.naver.com",
+                    summary: "국내 제약사들이 신약 개발에 대한 투자를 확대하고 있습니다. 글로벌 경쟁력 강화를 위한 연구개발 중심의 경영 전략을 추진하는 기업이 증가하는 추세입니다."
+                }
+            ];
+            
+            renderNewsList('medical-news-list', medicalNews, 'medical-count');
+        }
+        
+        // 뉴스 목록 렌더링
+        function renderNewsList(elementId, newsList, countId) {
+            const newsListElement = document.getElementById(elementId);
+            
+            // 로딩 메시지 제거
+            newsListElement.innerHTML = '';
+            
+            // 뉴스 수 표시 업데이트
+            if (countId) {
+                document.getElementById(countId).textContent = `(${newsList.length})`;
+            }
+            
+            if (newsList.length === 0) {
+                const emptyItem = document.createElement('li');
+                emptyItem.className = 'news-item';
+                emptyItem.textContent = '뉴스가 없습니다.';
+                newsListElement.appendChild(emptyItem);
+                return;
+            }
+            
+            // 각 뉴스 항목 추가
+            newsList.forEach((news, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'news-item';
+                
+                const titleElement = document.createElement('h3');
+                titleElement.className = 'news-title';
+                
+                const titleLink = document.createElement('a');
+                titleLink.href = news.link;
+                titleLink.target = '_blank';
+                titleLink.textContent = `${index + 1}. ${news.title}`;
+                
+                titleElement.appendChild(titleLink);
+                listItem.appendChild(titleElement);
+                
+                if (news.summary) {
+                    const summaryElement = document.createElement('p');
+                    summaryElement.className = 'news-summary';
+                    summaryElement.textContent = news.summary;
+                    listItem.appendChild(summaryElement);
+                }
+                
+                const linkElement = document.createElement('a');
+                linkElement.className = 'news-link';
+                linkElement.href = news.link;
+                linkElement.target = '_blank';
+                linkElement.textContent = '원문 보기';
+                listItem.appendChild(linkElement);
+                
+                newsListElement.appendChild(listItem);
+            });
+        }
+        
+        // 페이지 로드 시 초기화
+        window.addEventListener('DOMContentLoaded', () => {
+            updateDate();
+            loadNewsData();
+        });
+    </script>
+</body>
+</html> 
