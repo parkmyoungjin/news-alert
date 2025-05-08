@@ -3,6 +3,22 @@ import requests
 import urllib.parse
 from datetime import datetime
 
+def shorten_url(url):
+    """
+    TinyURL API를 사용해 URL을 단축하는 함수
+    """
+    api_url = f"https://tinyurl.com/api-create.php?url={url}"
+    try:
+        response = requests.get(api_url)
+        if response.status_code == 200:
+            return response.text
+        else:
+            print(f"URL 단축 실패: {response.status_code}")
+            return url
+    except Exception as e:
+        print(f"URL 단축 오류: {e}")
+        return url
+
 def send_kakao_message(news_data, topic_name):
     """
     카카오톡으로 뉴스를 발송하는 함수
@@ -33,9 +49,13 @@ def send_kakao_message(news_data, topic_name):
     encoded_news_data = urllib.parse.quote(json.dumps(news_data))
     
     # 웹 서버 URL - VM의 외부 IP 주소를 여기에 입력하세요
-    # 예: server_url = "http://34.123.123.123:8080"
     server_url = "http://34.64.136.183:8080"  # 실제 VM IP로 변경
     view_url = f"{server_url}/view?topic={urllib.parse.quote(topic_name)}&data={encoded_news_data}"
+    
+    # URL 단축 (TinyURL 서비스 사용)
+    shortened_url = shorten_url(view_url)
+    print(f"원본 URL: {view_url}")
+    print(f"단축 URL: {shortened_url}")
     
     # 메시지 보내기
     header = {
@@ -48,8 +68,8 @@ def send_kakao_message(news_data, topic_name):
             "object_type": "text",
             "text": text,
             "link": {
-                "web_url": view_url,
-                "mobile_web_url": view_url
+                "web_url": shortened_url,
+                "mobile_web_url": shortened_url
             },
             "button_title": "자세히 보기"
         })
@@ -63,7 +83,7 @@ def send_kakao_message(news_data, topic_name):
     
     if response.status_code == 200:
         print(f"{topic_name} 뉴스가 카카오톡으로 발송되었습니다.")
-        print(f"자세히 보기 URL: {view_url}")
+        print(f"자세히 보기 URL: {shortened_url}")
         return True
     else:
         print(f"메시지 발송 실패: {response.text}")
