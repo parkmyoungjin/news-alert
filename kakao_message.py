@@ -34,7 +34,7 @@ def send_kakao_message(news_data, topic_name):
     
     # 웹 서버 URL - VM의 외부 IP 주소를 여기에 입력하세요
     # 예: server_url = "http://34.123.123.123:8080"
-    server_url = "http://VM_EXTERNAL_IP:8080"  # TODO: VM의 실제 IP로 변경
+    server_url = "http://34.64.136.183:8080"  # 실제 VM IP로 변경
     view_url = f"{server_url}/view?topic={urllib.parse.quote(topic_name)}&data={encoded_news_data}"
     
     # 메시지 보내기
